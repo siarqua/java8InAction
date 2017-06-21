@@ -1,0 +1,280 @@
+Remember the interface Predicate<T> you created in chapter 2 so you could parameterize the
+behavior of the filter method? It’s a functional interface! Why? Because Predicate specifies only
+one abstract method:
+
+public interface Predicate<T>{
+    boolean test (T t);
+}
+
+In a nutshell, a functional interface is an interface that specifies exactly one abstract method.
+You already know several other functional interfaces in the Java API such as
+- Comparator
+- Runnable
+- ActionListener
+- Callable
+- PrivilegedAction
+- Predicate<T> T -> boolean e.g. IntPredicate
+
+The java.util.function.Predicate<T> interface defines an abstract method named test that
+accepts an object of generic type T and returns a boolean. It’s exactly the same one that you
+created earlier, but is available out of the box! You might want to use this interface when you
+need to represent a boolean expression that uses an object of type T. For example, you can
+define a lambda that accepts String objects, as shown in the following listing.
+
+@FunctionalInterface
+public interface Predicate<T>{
+    boolean test(T t);
+}
+public static <T> List<T> filter(List<T> list, Predicate<T> p) {
+    List<T> results = new ArrayList<>();
+    for(T s: list){
+        if(p.test(s)){
+            results.add(s);
+        }
+    return results;
+}
+
+Predicate<String> nonEmptyStringPredicate = (String s) -> !s.isEmpty();
+List<String> nonEmpty = filter(listOfStrings, nonEmptyStringPredicate);
+
+- IntPredicate
+
+Java 8 brings a specialized version of the functional interfaces we described earlier in order to
+avoid autoboxing operations when the inputs or outputs are primitives. For example, in the
+following code, using an IntPredicate avoids a boxing operation of the value 1000, whereas
+using a Predicate<Integer> would box the argument 1000 to an Integer object:
+
+@FunctionalInterface
+public interface IntPredicate{
+    boolean test(int t);
+}
+
+//No Boxing
+IntPredicate evenNumbers = (int i) -> i % 2 == 0;
+evenNumbers.test(1000);
+
+//Boxing
+Predicate<Integer> oddNumbers = (Integer i) -> i % 2 == 1;
+oddNumbers.test(1000);
+
+- BiPredicate<L,R> (L,R) -> boolean
+- Consumer<T> T -> void e.g. LongConsumer
+
+The java.util.function.Consumer<T> interface defines an abstract method named accept that
+takes an object of generic type T and returns no result (void). You might use this interface when
+you need to access an object of type T and perform some operations on it. For example, you can
+use it to create a method forEach, which takes a list of Integers and applies an operation on each
+element of that list. In the following listing you use this forEach method combined with a
+lambda to print all the elements of the list.
+
+@FunctionalInterface
+public interface Consumer<T>{
+    void accept(T t);
+}
+
+public static <T> void forEach(List<T> list, Consumer<T> c) {
+    for(T i: list) {
+        c.accept(i)
+    }
+}
+
+forEach( Arrays.asList(1,2,3,4,5), (Integer i) -> System.out.println(i));
+
+
+- BiConsumer<T,U> (T,U) -> void e.g. ObIntConsumer
+- Function<T,R> T -> R e.g. IntFunction<R>
+
+The java.util.function.Function<T, R> interface defines an abstract method named apply that
+takes an object of generic type T as input and returns an object of generic type R. You might use
+is interface when you need to define a lambda that maps information from an input object to
+an output (for example, extracting the weight of an apple or mapping a string to its length). In
+the listing that follows we show how you can use it to create a method map to transform a list of
+Strings into a list of Integers containing the length of each String.
+
+@FunctionalInterface
+public interface Function<T, R> {
+    R apply(T t);
+}
+
+public static <R, T> List<R> map(List<T> list, Function<T,R> f){
+    List<R> result = new ArrayList<>();
+    for(T s: list){
+        result.add(f.apply(s))
+    }
+    return result;
+}
+
+// [7, 2, 6]
+List<Integer> l = map ( Arrays.asList("lambdas","in","action"), (String s) -> s.length() );
+
+- BiFnction<T,U,R> (T,U)-> R e.g. ToIntBiFunctional
+- Supplier<T> ()->T e.g. BooleanSupplier
+- UnaryOperator<T> (T,T)-> T e.g. IntBinaryOperator
+
+
+You’ll see  that interfaces can now also have default methods (that is, a method with
+a body that provides some default implementation for a method in case it isn’t implemented by a
+An interface is still a functional interface if it has many default methods as long as it
+specifies only one abstract method.
+
+----------------------------------
+Which of these interfaces are functional interfaces?
+public interface Adder{
+    int add(int a, int b);
+}
+
+public interface SmartAdder extends Adder{
+    int add(double a, double b);
+}
+
+public interface Nothing{
+
+}
+
+Answer:
+Only Adder is a functional interface.
+
+SmartAdder isn’t a functional interface because it specifies two abstract methods called add (one
+is inherited from Adder).
+
+Nothing isn’t a functional interface because it declares no abstract method at all.
+
+---------------------------------------
+Which of the following are valid uses of lambda expressions?
+
+1. OK
+execute(() -> {});
+public void execute(Runnable r){
+    r.run();
+}
+
+2. OK
+public Callable<String> fetch() {
+    return () -> "Tricky example ;-)";
+}
+
+3. NOK Predicate <T> ()-> Boolean in example () -> Integer
+Predicate<Apple> p = (Apple a) -> a.getWeight();
+
+Answer:
+Only 1 and 2 are valid.
+The first example is valid because the lambda () -> {} has the signature () -> void, which
+matches the signature of the abstract method run defined in Runnable. Note that running this
+code will do nothing because the body of the lambda is empty!
+second example is also valid. Indeed, the return type of the method fetch is
+Callable<String>. Callable<String> essentially defines a method with the signature () -> String
+when T is replaced with String. Because the lambda () -> "Tricky example ;-)" has the signature ()
+-> String, the lambda can be used in this context.
+The third example is invalid because the lambda expression (Apple a) -> a.getWeight() has the
+signature (Apple) -> Integer, which is different than the signature of the method test defined in
+Predicate<Apple>: (Apple) -> boolean.
+
+---------------------
+What about @FunctionalInterface?
+If you explore the new Java API, you’ll notice that functional interfaces are annotated with
+@FunctionalInterface (we show an extensive list in section 3.4, where we explore functional
+interfaces in depth). This annotation is used to indicate that the interface is intended to be a
+functional interface. The compiler will return a meaningful error if you define an interface using
+the @FunctionalInterface annotation and it isn’t a functional interface. For example, an error
+message could be “Multiple non-overriding abstract methods found in interface Foo” to indicate
+that more than one abstract method is available. Note that the @FunctionalInterface annotation
+isn’t mandatory, but it’s good practice to use it when an interface is designed for that purpose.
+You can think of it like the @Override notation to indicate that a method is overridden.
+
+------------------------
+What functional interfaces would you use for the following function descriptors (that is,
+signatures of a lambda expression)?
+
+1. T -> R               answer: Function<T, R>
+2. (int, int) -> int    answer: IntBinaryOperator
+3. T -> void            answer: Consumer<T>
+4. () -> T              answer: Supplier<T>, Callable<T>
+5. (T, U) -> R          answer: BiFunction<T, U, R>
+
+Answers:
+1. Function<T, R> is a good candidate. It’s typically used for converting an object of type T into
+an object of type R (for example, Function<Apple, Integer> to extract the weight of an apple).
+
+2. IntBinaryOperator has a single abstract method called applyAsInt representing a function
+descriptor (int, int) -> int.
+
+3. Consumer<T> has a single abstract method called accept representing a function descriptor
+T -> void.
+4. Supplier<T> has a single abstract method called get representing a function descriptor
+() -> T. Alternatively, Callable<T> also has a single abstract method called call representing a
+function descriptor () -> T.
+5. BiFunction<T, U, R> has a single abstract method called apply representing a function
+descriptor (T, U) -> R.
+
+--------------------- EXCEPTIONS
+Note that none of the functional interfaces allow for a checked exception to be thrown. You have
+two options if you need a lambda expression to throw an exception: define your own functional
+interface that declares the checked exception, or wrap the lambda with a try/catch block.
+
+--------------------- Lambda Type checking
+The type of a lambda is deduced from the context in which the lambda is used. The type
+expected for the lambda expression inside the context (for example, a method parameter that
+it’s passed to or a local variable that it’s assigned to) is called the target type. Let’s look at an
+example to see what happens behind the scenes when you use a lambda expression. Figure 3.4
+summarizes the type-checking process for the following code:
+
+filter(inventory, (Apple a) -> a.getWeight() > 150);
+1. check definition of filter
+filter(List<Apple> inventory, Predicate<Apple> p)
+2. The target type is Predicate
+3. Provide abstract method for this predicate
+boolean test(Apple a)
+4. This is a test that get apple and return Boolean
+Apple -> boolean
+5. the function descriptor Apple -> boolean mach signature of lambda. It takes an Apple and return boolean
+
+e.g. List<Apple> heavierThan150g = filter(inventory, (Apple a) -> a.getWeight() > 150);
+
+The type-checking process is deconstructed as follows:
+- First, you look up the declaration of the filter method.
+- Second, it expects as the second formal parameter an object of type Predicate-<Apple> (the target type).
+- Third, Predicate<Apple> is a functional interface defining a single abstract method called test.
+- Fourth, the method test describes a function descriptor that accepts an Apple and returns a boolean.
+- Finally, any actual argument to the filter method needs to match this requirement.
+
+---------------------- Same lambda, different functional interfaces
+Because of the idea of target typing, the same lambda expression can be associated with
+different functional interfaces if they have a compatible abstract method signature. For example,
+both interfaces Callable and PrivilegedAction described earlier represent functions that accept
+nothing and return a generic type T. The following two assignments are therefore valid:
+
+Callable<Integer> c = () -> 42;
+PrivilegedAction<Integer> p = () -> 42;
+
+Comparator<Apple> c1 = (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+ToIntBiFunction<Apple, Apple> c2 = (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+BiFunction<Apple, Apple, Integer> c3 = (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+
+------------------- Type interface
+// No explicit type on the parameter a
+List<Apple> greanApples = filter(inventory, a -> "green".equals(a.getColor()));
+
+//Comperator without type interface
+Comparator<> c = (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+
+// comperator with Type interface
+Comparator<Apple> c = (a1, a2) -> a1.getWeight().compareTo(a2.getWeight());
+
+------------------ Lambda can use local variables
+All the lambda expressions we’ve shown so far used only their arguments inside their body. But
+lambda expressions are also allowed to use free variables (variables that aren’t the parameters
+and defined in an outer scope) just like anonymous classes can
+
+int portNumber = 1337;
+Runnable r = () -> System.out.println(portNumber);
+
+Nonetheless, there’s a small twist: there are some restrictions on what you can do with these
+variables. Lambdas are allowed to capture (that is, to reference in their bodies) instance
+variables and static variables without restrictions. But local variables have to be explicitly
+declared final or are effectively final. In other words, lambda expressions can capture local
+variables that are assigned to them only once
+
+
+
+
+

@@ -1,0 +1,97 @@
+Method references let you reuse existing method definitions and pass them just like lambdas. In
+some cases they appear more readable and feel more natural than using lambda expressions.
+
+Before:
+inventory.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
+
+After (using a method reference and java.util.Comparator.comparing):
+inventory.sort(comparing(Apple::getWeight))
+
+When you need a method reference, the target reference is
+placed before the delimiter :: and the name of the method is provided after it. For example,
+Apple::getWeight is a method reference to the method getWeight defined in the Apple class.
+Remember that no brackets are needed because you’re not actually calling the method. The
+method reference is shorthand for the lambda expression (Apple a) -> a.getWeight().
+
+Lambda Method                                           reference equivalent
+(Apple a) -> a.getWeight()                              Apple::getWeight
+() -> Thread.currentThread().dumpStack()                Thread.currentThread()::dumpStack
+(str, i) -> str.substring(i)                            String::substring
+(String s) -> System.out.println(s)                     System.out::println
+
+
+There are three main kinds of method references:
+1.
+A method reference to a static method (for example, the method parseInt of Integer, written Integer::parseInt)
+Lambda:             (args) -> ClassName.staticMethod(args)
+Method reference:   ClassName::staticMethod
+
+2.
+A method reference to an instance method of an arbitrary type
+(for example, the method length of a String, written String::length)
+Lambda:             (arg0, rest) -> arg0.instanceMethod(rest)
+Method reference:   ClassName::instanceMethod
+
+3. A method reference to an instance method of an existing object
+(for example, suppose you have a local variable expensiveTransaction that holds an object of type Transaction, which
+supports an instance method getValue; you can write expensiveTransaction::getValue)
+Lambda:             (args) -> expr.instanceMethod(args)
+Method reference:   expr::instanceMethod
+
+------------- quiz
+What are equivalent method references for the following lambda expressions?
+1.
+Function<String, Integer> stringToInteger = (String s) -> Integer.parseInt(s);
+
+2.
+BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
+
+Answers:
+1. This lambda expression forwards its argument to the static method parseInt of Integer. This
+method takes a String to parse and returns an Integer. As a result, the lambda can be rewritten
+using recipe
+from figure 3.5 (lambda expressions calling a static method) as follows:
+
+Function<String, Integer> stringToInteger = Integer::parseInt;
+
+2. This lambda uses its first argument to call the method contains on it. Because the first
+argument is of type List, you can use recipe
+from figure 3.5 as follows:
+BiPredicate<List<String>, String> contains = List::contains;
+This is because the target type describes a function descriptor (List<String>, String) -> boolean,
+and List::contains can be unpacked to that function descriptor.
+
+So far we showed only how to reuse existing method implementations and create method
+references. But you can do something similar with constructors of a class.
+
+-------------------- Constructor reference
+You can create a reference to an existing constructor using its name and the keyword new as
+follows: ClassName::new. It works similarly to a reference to a static method. For example,
+suppose there’s a zero-argument constructor. This fits the signature () -> Apple of Supplier; you
+can do the following,
+
+//Method reference
+//Non parameter constructor in Apple
+Supplier<Apple> s1 = Apple::new;
+
+// Calling supplier get method will invoke constructor
+Apple a1 = s1.get();
+
+//Parametrized constructor
+Function<String, Integer, Apple> s1 = Apple::new;
+
+// Calling supplier get method will invoke constructor
+Apple a1 = s1.apply("red", 150);
+
+// Lambda
+//Non parameter constructor in Apple
+Supplier<Apple> s1 = () -> new Apple()
+
+// Calling supplier get method will invoke constructor
+Apple a1 = s1.get();
+
+//Parametrized constructor
+Function<String, Integer, Apple> s1 = (color, weight) -> new Apple(color, weight);
+
+// Calling supplier get method will invoke constructor
+Apple a1 = s1.apply("red", 150);
