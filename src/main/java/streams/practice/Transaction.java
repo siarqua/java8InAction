@@ -1,6 +1,7 @@
 package streams.practice;
 
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.List;
 
 /**
@@ -11,6 +12,7 @@ public class Transaction {
     private final Trader trader;
     private final int yer;
     private final int value;
+    private Currency currency;
 
     public Transaction(Trader trader, int yer, int value) {
         this.trader = trader;
@@ -50,5 +52,9 @@ public class Transaction {
                 ", yer=" + yer +
                 ", value=" + value +
                 '}';
+    }
+
+    public Currency getCurrency() {
+        return currency;
     }
 }
