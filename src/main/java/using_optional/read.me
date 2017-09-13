@@ -1,0 +1,73 @@
+// 10.3.4. Default actions and unwrapping an optional
+
+-   get() is the simplest but also the least safe of these methods. It returns the wrapped value if present
+    but throws a NoSuchElementException otherwise. For this reason, using this method is almost
+    always a bad idea unless you’re really sure the optional contains a value. In addition, it’s not much of
+    an improvement over nested null checks.
+
+-   orElse(T other) is the method used in listing 10.5, and as we noted there, it allows you to provide a
+    default value for when the optional doesn’t contain a value.
+
+-   orElseGet(Supplier<? extends T> other) is the lazy counterpart of the orElse method, because
+    the supplier is invoked only if the optional contains no value. You should use this method either when
+    the default value is time-consuming to create (to gain a little efficiency) or you want to be sure this is
+    done only if the optional is empty (in which case it’s strictly necessary).
+
+-   orElseThrow(Supplier<? extends X> exceptionSupplier) is similar to the get method in that it
+    throws an exception when the optional is empty, but in this case it allows you to choose the type of
+    exception that you want to throw.
+
+-   ifPresent(Consumer<? super T> consumer) lets you execute the action given as argument if a
+    value is present; otherwise no action is taken.
+
+// Table 10.1. The methods of the Optional class
+
+[Method]                [Description]
+empty                   Returns an empty Optional instance
+
+filter                  if the value is present and matches the given predicate, returns this Optional; otherwise
+                        returns the empty one
+
+flatMap                 If a value is present, returns the Optional resulting from the application of the provided
+                        mapping function to it; otherwise returns the empty Optional
+
+get                     Returns the value wrapped by this Optional if present; otherwise throws a NoSuchElementException
+
+ifPresent               If a value is present, invokes the specified consumer with the value; otherwise does nothing
+
+isPresent               Returns true if there is a value present; otherwise false
+
+map                     If a value is present, applies the provided mapping function to it
+
+of                      Returns an Optional wrapping the given value or throws a NullPointerException if this value
+                        is null
+
+ofNullable              Returns an Optional wrapping the given value or the empty Optional if this value is null
+
+orElse                  Returns the value if present or the given default value otherwise
+
+orElseGet               Returns the value if present or the one provided by the given Supplier otherwise
+
+orElseThrow             Returns the value if present or throws the exception created by the given Supplier otherwise
+
+
+
+// Summary
+
+-   null references have been historically introduced in programming languages to generally signal the
+    absence of a value.
+
+-   Java 8 introduces the class java.util.Optional<T> to model the presence or absence of a value.
+
+-   You can create Optional objects with the static factory methods Optional.empty , Optional.of , and
+    Optional.ofNullable .
+
+-   The Optional class supports many methods such as map , flatMap , and filter , which are
+    conceptually similar to the methods of a stream.
+
+-   Using Optional forces you to actively unwrap an optional to deal with the absence of a value; as a
+    result, you protect your code against unintended null pointer exceptions.
+
+-   Using Optional can help you design better APIs in which, just by reading the signature of a method,
+    users can tell whether to expect an optional value.
+
